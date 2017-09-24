@@ -45,7 +45,7 @@
 /***/ function(module, exports, __webpack_require__) {
 
 	__webpack_require__(1);
-	module.exports = __webpack_require__(463);
+	module.exports = __webpack_require__(465);
 
 
 /***/ },
@@ -70,7 +70,9 @@
 
 	var _Home = __webpack_require__(460);
 
-	var _server = __webpack_require__(462);
+	var _Server = __webpack_require__(464);
+
+	var _TransactHome = __webpack_require__(466);
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -79,7 +81,8 @@
 	var stateTypes = {
 	    LoggedOut: 0, // shows home screen with login page
 	    LoggedIn: 1, // shows home screen without login page
-	    Registration: 2 // shows registration page
+	    Registration: 2, // shows registration page
+	    Transaction: 3
 	};
 
 	//ReactDOM.render(<LoginFormInstance />, document.getElementById("rightBar"));
@@ -87,7 +90,7 @@
 	    if (props.isLoggedOut === "true") {
 	        return _react2.default.createElement(
 	            _reactBootstrap.Navbar,
-	            { inverse: true },
+	            { className: "bs-custom-green" },
 	            _react2.default.createElement(
 	                _reactBootstrap.Navbar.Header,
 	                null,
@@ -99,7 +102,7 @@
 	            ),
 	            _react2.default.createElement(
 	                _reactBootstrap.Nav,
-	                { bsStyle: "tabs", activeKey: 1 },
+	                { bsStyle: "pills", activeKey: props.activeKey, onSelect: props.onNavSelected },
 	                _react2.default.createElement(
 	                    _reactBootstrap.NavItem,
 	                    { eventKey: 1, href: "#" },
@@ -125,7 +128,7 @@
 	    } else {
 	        return _react2.default.createElement(
 	            _reactBootstrap.Navbar,
-	            { inverse: true },
+	            { bsSize: "sm", className: "bs-custom-green" },
 	            _react2.default.createElement(
 	                _reactBootstrap.Navbar.Header,
 	                null,
@@ -137,11 +140,11 @@
 	            ),
 	            _react2.default.createElement(
 	                _reactBootstrap.Nav,
-	                { bsStyle: "tabs", activeKey: 1 },
+	                { bsStyle: "pills", activeKey: props.activeKey, onSelect: props.onNavSelected },
 	                _react2.default.createElement(
 	                    _reactBootstrap.NavItem,
-	                    { eventKey: 1, href: "#" },
-	                    "Home"
+	                    { eventKey: 1 },
+	                    "My Account"
 	                ),
 	                _react2.default.createElement(
 	                    _reactBootstrap.NavItem,
@@ -157,17 +160,22 @@
 	                    _reactBootstrap.NavItem,
 	                    { eventKey: 4 },
 	                    "Referral Scheme"
+	                ),
+	                _react2.default.createElement(
+	                    _reactBootstrap.NavItem,
+	                    { eventKey: 5 },
+	                    "Transact"
 	                )
 	            ),
 	            _react2.default.createElement(
 	                _reactBootstrap.Nav,
-	                { pullRight: true },
+	                { pullRight: true, onSelect: props.onNavSelected },
 	                _react2.default.createElement(
 	                    _reactBootstrap.NavDropdown,
-	                    { eventKey: "5", title: 'Welcome ' + props.userName, id: "nav-dropdown" },
+	                    { eventKey: "6", title: 'Welcome ' + props.userName, id: "nav-dropdown" },
 	                    _react2.default.createElement(
 	                        _reactBootstrap.MenuItem,
-	                        { eventKey: "5.1", onClick: props.onLogoutClick, bsStyle: "" },
+	                        { eventKey: "6.1", bsStyle: "" },
 	                        "Logout"
 	                    )
 	                )
@@ -208,7 +216,7 @@
 	        _react2.default.createElement(
 	            "div",
 	            null,
-	            _react2.default.createElement(NavBars, { isLoggedOut: "true" })
+	            _react2.default.createElement(NavBars, { isLoggedOut: "true", activeKey: props.activeKey })
 	        ),
 	        _react2.default.createElement(
 	            "div",
@@ -245,17 +253,43 @@
 	    );
 	};
 
+	var TransactHomeWrapper = function TransactHomeWrapper(props) {
+	    return _react2.default.createElement(
+	        "div",
+	        null,
+	        _react2.default.createElement(
+	            "div",
+	            null,
+	            _react2.default.createElement(NavBars, { isLoggedOut: "false", onNavSelected: props.onNavSelected, userName: props.userName, activeKey: props.activeKey })
+	        ),
+	        _react2.default.createElement(
+	            "div",
+	            { className: "main" },
+	            _react2.default.createElement(
+	                "div",
+	                { className: "mainBar" },
+	                _react2.default.createElement(
+	                    "div",
+	                    null,
+	                    _react2.default.createElement(_TransactHome.TransactHomeForm, { isLoggedOut: "false" })
+	                )
+	            )
+	        )
+	    );
+	};
+
 	var App = _react2.default.createClass({
 	    displayName: "App",
 	    getInitialState: function getInitialState() {
 	        return {
 	            stateType: stateTypes.LoggedOut,
 	            stateObj: { isValid: true },
-	            sessionObj: { userName: "", userId: "", sessionKey: "" }
+	            sessionObj: { userName: "", userId: "", sessionKey: "" },
+	            navKey: 1
 	        };
 	    },
 	    handleLoginSubmit: function handleLoginSubmit(uName, pwd) {
-	        (0, _server.sendPost)("/auth", { user: uName, pwd: pwd }, this.loginSuccessHandler, this.loginFailureHandler);
+	        (0, _Server.sendPost)("/auth", { user: uName, pwd: pwd }, this.loginSuccessHandler, this.loginFailureHandler);
 	    },
 	    loginSuccessHandler: function loginSuccessHandler(requestData, responseData) {
 	        this.setState({ stateType: stateTypes.LoggedIn, sessionObj: { userName: requestData.user, userId: "", sessionKey: responseData.sessionKey } });
@@ -266,8 +300,20 @@
 	        this.setState({ stateType: stateTypes.LoggedOut, stateObj: { isValid: false } });
 	    },
 	    handleRegistrationSubmit: function handleRegistrationSubmit() {},
+	    handleNavSelect: function handleNavSelect(selectedKey) {
+	        if (selectedKey == 1) {
+	            this.setState({ stateType: stateTypes.LoggedIn, navKey: selectedKey });
+	        } else if (selectedKey == 5) {
+	            this.setState({ stateType: stateTypes.Transaction, stateObj: { isValid: true }, navKey: selectedKey });
+	        } else if (selectedKey == 6.1) {
+	            this.setState({ stateType: stateTypes.LoggedOut, stateObj: { isValid: true }, navKey: 1 });
+	        }
+	    },
 	    handleLogoutCick: function handleLogoutCick() {
 	        this.setState({ stateType: stateTypes.LoggedOut, stateObj: { isValid: true } });
+	    },
+	    handleTransactCick: function handleTransactCick() {
+	        this.setState({ stateType: stateTypes.Transaction, stateObj: { isValid: true } });
 	    },
 	    sendMessage: function sendMessage(messageText) {
 	        axios.post(baseUrl + "/api/messages", {
@@ -285,7 +331,7 @@
 	                _react2.default.createElement(
 	                    "div",
 	                    null,
-	                    _react2.default.createElement(NavBars, { isLoggedOut: "false", onLogoutClick: this.handleLogoutCick, userName: this.state.sessionObj.userName })
+	                    _react2.default.createElement(NavBars, { isLoggedOut: "false", onNavSelected: this.handleNavSelect, userName: this.state.sessionObj.userName, activeKey: this.state.navKey })
 	                ),
 	                _react2.default.createElement(
 	                    "div",
@@ -302,7 +348,10 @@
 	                )
 	            );
 	        } else if (this.state.stateType === stateTypes.LoggedOut) {
-	            return _react2.default.createElement(UserTabsInstance, { onLoginSubmit: this.handleLoginSubmit, onRegistrationSubmit: this.handleRegistrationSubmit, stateObj: this.state.stateObj });
+	            return _react2.default.createElement(UserTabsInstance, { onLoginSubmit: this.handleLoginSubmit, onRegistrationSubmit: this.handleRegistrationSubmit,
+	                stateObj: this.state.stateObj, activeKey: this.state.navKey });
+	        } else if (this.state.stateType === stateTypes.Transaction) {
+	            return _react2.default.createElement(TransactHomeWrapper, { onNavSelected: this.handleNavSelect, activeKey: this.state.navKey, userName: this.state.sessionObj.userName });
 	        }
 	    }
 	});
@@ -47994,6 +48043,10 @@
 
 	var _Kyc = __webpack_require__(461);
 
+	var _Profile = __webpack_require__(462);
+
+	var _DashBoard = __webpack_require__(463);
+
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 	var HomeInstance = exports.HomeInstance = function HomeInstance(props) {
@@ -48243,18 +48296,61 @@
 	    );
 	};
 
+	var sampleProfile = {
+	    InvestorDetails: {
+	        Name: 'Dhaya',
+	        JointHolder: 'dhaya1',
+	        EmailId: 'dhayanithims@gmail.com',
+	        MobileNo: '+919791231740',
+	        Address: 'No 123, 3rd cross street, xyz nagar, abc city, TN - 600000',
+	        DOB: '19-May-1990'
+	    },
+	    BankDetails: {
+	        BankName: 'Hdfc',
+	        IFSC: 'HDFC0000123',
+	        AcctNo: '04412340943',
+	        Branch: 'Velachery/Chennai',
+	        AcctType: 'Savings'
+	    },
+	    NomineeDetails: {
+	        Nominee1: 'father',
+	        Nominee2: 'Mother'
+	    },
+	    KycDetails: {
+	        PAN: 'abcde1234f',
+	        ADHAR: '9791231740',
+	        KycStatus: 'Verified'
+	    }
+	};
+
+	var investmentObj = [{
+	    FundName: "Axis",
+	    SchemeName: "Moderate risk",
+	    FundType: "ELSS",
+	    Cost: "50000",
+	    MarketValue: "59000",
+	    UnitValue: "590",
+	    UnitCount: "100",
+	    AnnualXIRR: "34%"
+	}, {
+	    FundName: "HDFC",
+	    SchemeName: "Low risk",
+	    FundType: "ELSS",
+	    Cost: "35000",
+	    MarketValue: "38000",
+	    UnitValue: "380",
+	    UnitCount: "100",
+	    AnnualXIRR: "16%"
+	}];
+
 	var HomeTabsInstance = function HomeTabsInstance() {
 	    return _react2.default.createElement(
 	        _reactBootstrap.Tabs,
-	        { defaultActiveKey: 2, id: "uncontrolled-tab-example" },
+	        { defaultActiveKey: 2, id: "uncontrolled-tab-example", animation: false },
 	        _react2.default.createElement(
 	            _reactBootstrap.Tab,
 	            { eventKey: 1, title: "Dashboard" },
-	            _react2.default.createElement(
-	                "p",
-	                null,
-	                "You have no stocks to display"
-	            )
+	            _react2.default.createElement(_DashBoard.DashBoardFormInstance, { investmentObj: investmentObj })
 	        ),
 	        _react2.default.createElement(
 	            _reactBootstrap.Tab,
@@ -48269,7 +48365,7 @@
 	        _react2.default.createElement(
 	            _reactBootstrap.Tab,
 	            { eventKey: 4, title: "My Profile" },
-	            "Tab 3 content"
+	            _react2.default.createElement(_Profile.ProfileFormInstance, { profileObj: sampleProfile })
 	        )
 	    );
 	};
@@ -48346,7 +48442,7 @@
 	                ),
 	                _react2.default.createElement(
 	                    _reactBootstrap.FormGroup,
-	                    { controlId: "formPAN" },
+	                    { bsSize: "xsmall", controlId: "formPAN" },
 	                    _react2.default.createElement(
 	                        _reactBootstrap.Col,
 	                        { smOffset: 1, sm: 2 },
@@ -48413,12 +48509,12 @@
 	                    _react2.default.createElement(
 	                        _reactBootstrap.Col,
 	                        { sm: 5 },
-	                        _react2.default.createElement(_reactBootstrap.FormControl, { type: "file", placeholder: "", onChange: "" })
-	                    ),
-	                    _react2.default.createElement(
-	                        _reactBootstrap.HelpBlock,
-	                        null,
-	                        "Upload an image of your signature"
+	                        _react2.default.createElement(_reactBootstrap.FormControl, { type: "file", placeholder: "", onChange: "" }),
+	                        _react2.default.createElement(
+	                            _reactBootstrap.HelpBlock,
+	                            null,
+	                            "Upload an image of your signature"
+	                        )
 	                    )
 	                ),
 	                _react2.default.createElement(
@@ -48448,6 +48544,314 @@
 	Object.defineProperty(exports, "__esModule", {
 	    value: true
 	});
+	exports.ProfileFormInstance = undefined;
+
+	var _react = __webpack_require__(2);
+
+	var _react2 = _interopRequireDefault(_react);
+
+	var _reactDom = __webpack_require__(34);
+
+	var _reactDom2 = _interopRequireDefault(_reactDom);
+
+	var _axios = __webpack_require__(436);
+
+	var _axios2 = _interopRequireDefault(_axios);
+
+	var _pusherJs = __webpack_require__(458);
+
+	var _pusherJs2 = _interopRequireDefault(_pusherJs);
+
+	var _reactBootstrap = __webpack_require__(173);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	var ProfileFormInstance = exports.ProfileFormInstance = function ProfileFormInstance(props) {
+	    var headerObj,
+	        bodyObj,
+	        bodyRows = [],
+	        headerCols = [],
+	        bodyCols = [],
+	        headerRow;
+	    var investorDetails = props.profileObj.InvestorDetails;
+	    var customClass = "bs-custom-green";
+	    headerRow = _react2.default.createElement(
+	        "tr",
+	        { className: customClass },
+	        _react2.default.createElement(
+	            "th",
+	            { colSpan: "2" },
+	            " Investor Details"
+	        )
+	    );
+	    bodyRows = getTableBodyRows(props.profileObj.InvestorDetails);
+	    var investorTableObj = _react2.default.createElement(TableInstance, { headerObj: headerRow, bodyObj: bodyRows });
+
+	    headerRow = _react2.default.createElement(
+	        "tr",
+	        { className: customClass },
+	        _react2.default.createElement(
+	            "th",
+	            { colSpan: "2" },
+	            " KYC Details"
+	        )
+	    );
+	    bodyRows = getTableBodyRows(props.profileObj.KycDetails);
+	    var kycTableObj = _react2.default.createElement(TableInstance, { headerObj: headerRow, bodyObj: bodyRows });
+
+	    headerRow = _react2.default.createElement(
+	        "tr",
+	        { className: customClass },
+	        _react2.default.createElement(
+	            "th",
+	            { colSpan: "2" },
+	            " Bank Details"
+	        )
+	    );
+	    bodyRows = getTableBodyRows(props.profileObj.BankDetails);
+	    var bankTableObj = _react2.default.createElement(TableInstance, { headerObj: headerRow, bodyObj: bodyRows });
+
+	    headerRow = _react2.default.createElement(
+	        "tr",
+	        { className: customClass },
+	        _react2.default.createElement(
+	            "th",
+	            { colSpan: "2" },
+	            " Nominee Details"
+	        )
+	    );
+	    bodyRows = getTableBodyRows(props.profileObj.NomineeDetails);
+	    var nomineeTableObj = _react2.default.createElement(TableInstance, { headerObj: headerRow, bodyObj: bodyRows });
+
+	    var profieObj = _react2.default.createElement(
+	        "div",
+	        { className: "rightBar" },
+	        _react2.default.createElement(
+	            _reactBootstrap.Row,
+	            null,
+	            _react2.default.createElement(
+	                _reactBootstrap.Col,
+	                { smOffset: 1, sm: 7 },
+	                investorTableObj
+	            )
+	        ),
+	        _react2.default.createElement(
+	            _reactBootstrap.Row,
+	            null,
+	            _react2.default.createElement(
+	                _reactBootstrap.Col,
+	                { smOffset: 1, sm: 7 },
+	                kycTableObj
+	            )
+	        ),
+	        _react2.default.createElement(
+	            _reactBootstrap.Row,
+	            null,
+	            _react2.default.createElement(
+	                _reactBootstrap.Col,
+	                { smOffset: 1, sm: 7 },
+	                bankTableObj
+	            )
+	        ),
+	        _react2.default.createElement(
+	            _reactBootstrap.Row,
+	            null,
+	            _react2.default.createElement(
+	                _reactBootstrap.Col,
+	                { smOffset: 1, sm: 7 },
+	                nomineeTableObj
+	            )
+	        )
+	    );
+	    return profieObj;
+	};
+
+	function getTableBodyRows(bodyData) {
+	    var bodyRows = [],
+	        bodyCols = [];
+	    for (var key in bodyData) {
+	        if (bodyData.hasOwnProperty(key)) {
+	            bodyCols = [];
+	            bodyCols.push(_react2.default.createElement(
+	                "td",
+	                null,
+	                key
+	            ));
+	            bodyCols.push(_react2.default.createElement(
+	                "td",
+	                null,
+	                bodyData[key]
+	            ));
+	            bodyRows.push(_react2.default.createElement(
+	                "tr",
+	                null,
+	                bodyCols
+	            ));
+	        }
+	    }
+	    return bodyRows;
+	}
+
+	var TableInstance = function TableInstance(props) {
+	    var headerObj = props.headerObj;
+	    var bodyObj = props.bodyObj;
+	    return _react2.default.createElement(
+	        _reactBootstrap.Table,
+	        { bordered: true, condensed: true, hover: true, className: "tableElement" },
+	        _react2.default.createElement(
+	            "thead",
+	            null,
+	            headerObj
+	        ),
+	        _react2.default.createElement(
+	            "tbody",
+	            null,
+	            bodyObj
+	        )
+	    );
+	};
+	var TableRowInstance = function TableRowInstance(props) {
+	    var rowObject = props.tableRow;
+	    return _react2.default.createElement(
+	        "tr",
+	        null,
+	        rowObject
+	    );
+	};
+
+	var TableHeaderInstance = function TableHeaderInstance(props) {
+	    var cellData = props.cellData;
+	    return _react2.default.createElement(
+	        "th",
+	        null,
+	        cellData
+	    );
+	};
+
+	var TableDataInstance = function TableDataInstance(props) {
+	    var cellData = props.cellData;
+	    return _react2.default.createElement(
+	        "td",
+	        null,
+	        cellData
+	    );
+	};
+
+/***/ },
+/* 463 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+
+	Object.defineProperty(exports, "__esModule", {
+	    value: true
+	});
+	exports.DashBoardFormInstance = undefined;
+
+	var _react = __webpack_require__(2);
+
+	var _react2 = _interopRequireDefault(_react);
+
+	var _reactDom = __webpack_require__(34);
+
+	var _reactDom2 = _interopRequireDefault(_reactDom);
+
+	var _axios = __webpack_require__(436);
+
+	var _axios2 = _interopRequireDefault(_axios);
+
+	var _pusherJs = __webpack_require__(458);
+
+	var _pusherJs2 = _interopRequireDefault(_pusherJs);
+
+	var _reactBootstrap = __webpack_require__(173);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	var DashBoardFormInstance = exports.DashBoardFormInstance = function DashBoardFormInstance(props) {
+	    var totalObj = preprocessInvestObj(props.investmentObj);
+	    var totalTableObj = _react2.default.createElement(TableFromArray, { tableData: [totalObj] });
+	    var investTableObj = _react2.default.createElement(TableFromArray, { tableData: props.investmentObj });
+	    return _react2.default.createElement(
+	        "div",
+	        null,
+	        investTableObj,
+	        totalTableObj
+	    );
+	};
+
+	function preprocessInvestObj(investObj) {
+	    var totalObj = { TotalCost: 0, TotalMarketValue: 0, AnnualXIRR: 0, TotalAppreciation: 0 };
+	    for (var i = 0; i < investObj.length; i++) {
+	        investObj[i]["Appreciation"] = investObj[i].MarketValue - investObj[i].Cost;
+	        totalObj.TotalCost = parseFloat(totalObj.TotalCost) + parseFloat(investObj[i].Cost);
+	        totalObj.TotalMarketValue = parseFloat(totalObj.TotalMarketValue) + parseFloat(investObj[i].MarketValue);
+	        totalObj.TotalAppreciation = parseFloat(totalObj.TotalAppreciation) + parseFloat(investObj[i].Appreciation);
+	        totalObj.AnnualXIRR = parseFloat(totalObj.AnnualXIRR) + parseFloat(investObj[i].AnnualXIRR);
+	    }
+	    return totalObj;
+	}
+
+	var TableFromArray = function TableFromArray(props) {
+	    var tableData = props.tableData;
+	    var bodyRows = [],
+	        bodyCols = [],
+	        headerRow = [],
+	        headerCols = [];
+	    for (var i = 0; i < tableData.length; i++) {
+	        bodyCols = [];
+	        for (var key in tableData[i]) {
+	            if (tableData[i].hasOwnProperty(key)) {
+	                bodyCols.push(_react2.default.createElement(
+	                    "td",
+	                    null,
+	                    tableData[i][key]
+	                ));
+	                if (i == 0) {
+	                    headerCols.push(_react2.default.createElement(
+	                        "th",
+	                        null,
+	                        key
+	                    ));
+	                }
+	            }
+	        }
+	        bodyRows.push(_react2.default.createElement(
+	            "tr",
+	            null,
+	            bodyCols
+	        ));
+	    }
+	    headerRow.push(_react2.default.createElement(
+	        "tr",
+	        { className: "bs-custom-green" },
+	        headerCols
+	    ));
+	    return _react2.default.createElement(
+	        _reactBootstrap.Table,
+	        { bordered: true, condensed: true, hover: true, className: "tableElement" },
+	        _react2.default.createElement(
+	            "thead",
+	            null,
+	            headerRow
+	        ),
+	        _react2.default.createElement(
+	            "tbody",
+	            null,
+	            bodyRows
+	        )
+	    );
+	};
+
+/***/ },
+/* 464 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+
+	Object.defineProperty(exports, "__esModule", {
+	    value: true
+	});
 	exports.sendPost = sendPost;
 	exports.sendGet = sendGet;
 
@@ -48463,7 +48867,7 @@
 
 	var _axios2 = _interopRequireDefault(_axios);
 
-	var _Config = __webpack_require__(463);
+	var _Config = __webpack_require__(465);
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -48490,7 +48894,7 @@
 	}
 
 /***/ },
-/* 463 */
+/* 465 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -48502,6 +48906,276 @@
 	    serviceUrl: "http://localhost:61354/",
 	    isMock: true
 	};
+
+/***/ },
+/* 466 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+
+	Object.defineProperty(exports, "__esModule", {
+	    value: true
+	});
+	exports.TransactHomeForm = undefined;
+
+	var _react = __webpack_require__(2);
+
+	var _react2 = _interopRequireDefault(_react);
+
+	var _reactDom = __webpack_require__(34);
+
+	var _reactDom2 = _interopRequireDefault(_reactDom);
+
+	var _reactBootstrap = __webpack_require__(173);
+
+	var _Invest = __webpack_require__(467);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	var fundSchemeObj = [{
+	    fundName: "Axis",
+	    fundId: "1001",
+	    schemeList: [{
+	        schemeName: "Axis-ELSS - Moderate risk",
+	        schemeId: "1234",
+	        schemeType: "ELSS"
+	    }, {
+	        schemeName: "Axis-ELSS - Low risk",
+	        schemeId: "1235",
+	        schemeType: "ELSS"
+	    }]
+	}, {
+	    fundName: "Hdfc",
+	    fundId: "1002",
+	    schemeList: [{
+	        schemeName: "HDFC-ELSS - Moderate risk",
+	        schemeId: "1236",
+	        schemeType: "ELSS"
+	    }, {
+	        schemeName: "HDFC-ELSS - Low risk",
+	        schemeId: "1237",
+	        schemeType: "ELSS"
+	    }]
+	}];
+
+	var TransactHomeForm = exports.TransactHomeForm = function TransactHomeForm() {
+	    return _react2.default.createElement(
+	        _reactBootstrap.Tabs,
+	        { defaultActiveKey: 1, id: "uncontrolled-tab-example", animation: false },
+	        _react2.default.createElement(
+	            _reactBootstrap.Tab,
+	            { eventKey: 1, title: "Invest" },
+	            _react2.default.createElement(_Invest.InvestForm, { fundSchemeObj: fundSchemeObj })
+	        ),
+	        _react2.default.createElement(
+	            _reactBootstrap.Tab,
+	            { eventKey: 2, title: "Redeem" },
+	            "redeem"
+	        ),
+	        _react2.default.createElement(
+	            _reactBootstrap.Tab,
+	            { eventKey: 3, title: "Switch" },
+	            "switch"
+	        ),
+	        _react2.default.createElement(
+	            _reactBootstrap.Tab,
+	            { eventKey: 4, title: "SIP" },
+	            "SIP"
+	        )
+	    );
+	};
+
+/***/ },
+/* 467 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+
+	Object.defineProperty(exports, "__esModule", {
+	    value: true
+	});
+	exports.InvestForm = undefined;
+
+	var _react = __webpack_require__(2);
+
+	var _react2 = _interopRequireDefault(_react);
+
+	var _reactDom = __webpack_require__(34);
+
+	var _reactDom2 = _interopRequireDefault(_reactDom);
+
+	var _reactBootstrap = __webpack_require__(173);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	var InvestForm = exports.InvestForm = _react2.default.createClass({
+	    displayName: "InvestForm",
+	    getInitialState: function getInitialState() {
+	        return {
+	            fundName: "",
+	            fundId: "0",
+	            schemeName: "",
+	            schemeId: "0",
+	            amount: "",
+	            schemeSelectList: []
+	        };
+	    },
+	    getSchemeSelectList: function getSchemeSelectList(fundId) {
+	        var schemeSelectList = [];
+	        for (var i = 0; i < this.props.fundSchemeObj.length; i++) {
+	            if (fundId == this.props.fundSchemeObj[i].fundId) {
+	                schemeSelectList = this.props.fundSchemeObj[i].schemeList;
+	            }
+	        }
+	        return schemeSelectList;
+	    },
+	    handleFundChange: function handleFundChange(event) {
+	        var schemeList = this.getSchemeSelectList(event.target.value);
+	        this.setState({ fundId: event.target.value, schemeSelectList: schemeList });
+	    },
+	    handleSchemeChange: function handleSchemeChange(event) {
+	        this.setState({ schemeId: event.target.value });
+	    },
+	    handleClick: function handleClick(e) {
+	        //this.props.onSubmitHandler();
+	        e.preventDefault();
+	    },
+	    handleAmountChange: function handleAmountChange(e) {
+	        this.setState({ amount: e.target.value });
+	    },
+	    render: function render() {
+
+	        var validationState = null;
+
+	        return _react2.default.createElement(
+	            "div",
+	            { className: "rightBar" },
+	            _react2.default.createElement(
+	                _reactBootstrap.Form,
+	                { horizontal: true },
+	                _react2.default.createElement(
+	                    _reactBootstrap.Col,
+	                    { smOffset: 1 },
+	                    _react2.default.createElement(
+	                        "p",
+	                        null,
+	                        "Please choose the fund and scheme for investing"
+	                    )
+	                ),
+	                _react2.default.createElement(
+	                    _reactBootstrap.FormGroup,
+	                    { controlId: "formFundsSelect" },
+	                    _react2.default.createElement(
+	                        _reactBootstrap.Col,
+	                        { smOffset: 1, sm: 2 },
+	                        _react2.default.createElement(
+	                            _reactBootstrap.ControlLabel,
+	                            null,
+	                            "Funds"
+	                        )
+	                    ),
+	                    _react2.default.createElement(
+	                        _reactBootstrap.Col,
+	                        { sm: 5 },
+	                        _react2.default.createElement(
+	                            _reactBootstrap.FormControl,
+	                            { defaultValue: this.state.fundId, componentClass: "select", placeholder: "Funds", onChange: this.handleFundChange },
+	                            _react2.default.createElement(
+	                                "option",
+	                                { value: "0" },
+	                                "...Select Funds..."
+	                            ),
+	                            this.props.fundSchemeObj.map(function (fundObj) {
+	                                return _react2.default.createElement(
+	                                    "option",
+	                                    { value: fundObj.fundId },
+	                                    fundObj.fundName
+	                                );
+	                            })
+	                        )
+	                    )
+	                ),
+	                _react2.default.createElement(
+	                    _reactBootstrap.FormGroup,
+	                    { controlId: "formSchemeSelect" },
+	                    _react2.default.createElement(
+	                        _reactBootstrap.Col,
+	                        { smOffset: 1, sm: 2 },
+	                        _react2.default.createElement(
+	                            _reactBootstrap.ControlLabel,
+	                            null,
+	                            "Schemes"
+	                        )
+	                    ),
+	                    _react2.default.createElement(
+	                        _reactBootstrap.Col,
+	                        { sm: 5 },
+	                        _react2.default.createElement(
+	                            _reactBootstrap.FormControl,
+	                            { defaultValue: this.state.schemeId, componentClass: "select", placeholder: "Schemes", onChange: this.handleSchemeChange },
+	                            _react2.default.createElement(
+	                                "option",
+	                                { value: "0" },
+	                                "...Select Schemes..."
+	                            ),
+	                            this.state.schemeSelectList.map(function (schemeObj) {
+	                                return _react2.default.createElement(
+	                                    "option",
+	                                    { value: schemeObj.schemeId },
+	                                    schemeObj.schemeName
+	                                );
+	                            })
+	                        )
+	                    )
+	                ),
+	                _react2.default.createElement(
+	                    _reactBootstrap.FormGroup,
+	                    { controlId: "formAmountText" },
+	                    _react2.default.createElement(
+	                        _reactBootstrap.Col,
+	                        { smOffset: 1, sm: 2 },
+	                        _react2.default.createElement(
+	                            _reactBootstrap.ControlLabel,
+	                            null,
+	                            "Amount"
+	                        )
+	                    ),
+	                    _react2.default.createElement(
+	                        _reactBootstrap.Col,
+	                        { sm: 5 },
+	                        _react2.default.createElement(
+	                            _reactBootstrap.InputGroup,
+	                            null,
+	                            _react2.default.createElement(
+	                                _reactBootstrap.InputGroup.Addon,
+	                                null,
+	                                _react2.default.createElement(
+	                                    "code",
+	                                    null,
+	                                    "\u20B9"
+	                                )
+	                            ),
+	                            _react2.default.createElement(_reactBootstrap.FormControl, { type: "text", placeholder: "", value: this.state.amount, onChange: this.handleAmountChange })
+	                        )
+	                    )
+	                ),
+	                _react2.default.createElement(
+	                    _reactBootstrap.FormGroup,
+	                    null,
+	                    _react2.default.createElement(
+	                        _reactBootstrap.Col,
+	                        { smOffset: 1, sm: 2 },
+	                        _react2.default.createElement(
+	                            _reactBootstrap.Button,
+	                            { bsStyle: "primary", bsSize: "medium", type: "submit", onClick: this.handleClick, block: true },
+	                            "Invest"
+	                        )
+	                    )
+	                )
+	            )
+	        );
+	    }
+	});
 
 /***/ }
 /******/ ]);
