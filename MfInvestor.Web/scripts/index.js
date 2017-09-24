@@ -5,27 +5,29 @@ import { Form, FormGroup, ControlLabel, FormControl, NavDropdown,Tabs,Tab } from
 import { LoginFormInstance } from './Login.js'
 import { RegnFormInstance } from './Registration.js'
 import { HomeInstance } from './Home.js'
-import { sendPost, sendGet} from './server.js'
+import { sendPost, sendGet } from './Server.js'
+import { TransactHomeForm } from './Transact/TransactHome.js'
 const baseUrl = 'http://localhost:55561';
 
 const stateTypes = {
     LoggedOut: 0, // shows home screen with login page
     LoggedIn: 1, // shows home screen without login page
-    Registration: 2 // shows registration page
+    Registration: 2, // shows registration page
+    Transaction: 3
 };
 
 //ReactDOM.render(<LoginFormInstance />, document.getElementById("rightBar"));
 const NavBars = (props) => {
     if (props.isLoggedOut === "true") {
         return (
-            <Navbar inverse>
+            <Navbar className="bs-custom-green">
                 <Navbar.Header>
                     <Navbar.Brand>
                         <Image src="assets/images/logo.png" responsive />
                     </Navbar.Brand>
                 </Navbar.Header>
 
-                <Nav bsStyle="tabs" activeKey={1} >
+                <Nav bsStyle="pills" activeKey={props.activeKey} onSelect={props.onNavSelected}>
                     <NavItem eventKey={1} href="#">Home</NavItem>
                     <NavItem eventKey={2} href="#">Why Mutual Funds</NavItem>
                     <NavItem eventKey={3} title="#">About Us</NavItem>
@@ -35,22 +37,23 @@ const NavBars = (props) => {
         );
     } else {
         return (
-            <Navbar inverse>
+            <Navbar bsSize="sm" className="bs-custom-green">
                 <Navbar.Header>
                     <Navbar.Brand>
                         <Image src="assets/images/logo.png" responsive />
                     </Navbar.Brand>
                 </Navbar.Header>
 
-                <Nav bsStyle="tabs" activeKey={1} >
-                    <NavItem eventKey={1} href="#">Home</NavItem>
+                <Nav bsStyle="pills" activeKey={props.activeKey} onSelect={props.onNavSelected}>
+                    <NavItem eventKey={1} >My Account</NavItem>
                     <NavItem eventKey={2} href="#">Why Mutual Funds</NavItem>
                     <NavItem eventKey={3} title="#">About Us</NavItem>
                     <NavItem eventKey={4} >Referral Scheme</NavItem>
+                    <NavItem eventKey={5} >Transact</NavItem>
                 </Nav>
-                <Nav pullRight>
-                    <NavDropdown eventKey="5" title={'Welcome '+props.userName} id="nav-dropdown">
-                        <MenuItem eventKey="5.1" onClick={props.onLogoutClick} bsStyle="">Logout</MenuItem>
+                <Nav pullRight onSelect={props.onNavSelected}>
+                    <NavDropdown eventKey="6" title={'Welcome '+props.userName} id="nav-dropdown">
+                        <MenuItem eventKey="6.1" bsStyle="">Logout</MenuItem>
                     </NavDropdown>
                 </Nav>
             </Navbar>
@@ -74,7 +77,7 @@ const UserTabsInstance = (props) => {
     return (
         <div>
             <div>
-                <NavBars isLoggedOut="true" />
+                <NavBars isLoggedOut="true" activeKey={props.activeKey}/>
             </div>
             <div className="main">
                 <div className="leftBar">
@@ -94,12 +97,30 @@ const UserTabsInstance = (props) => {
     );
 }
 
+const TransactHomeWrapper = (props) => {
+    return (
+        <div>
+            <div>
+                <NavBars isLoggedOut="false" onNavSelected={props.onNavSelected} userName={props.userName} activeKey={props.activeKey} />
+            </div>
+            <div className="main">
+                <div className="mainBar">
+                    <div>
+                        <TransactHomeForm isLoggedOut="false" />
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}
+
 const App = React.createClass({
     getInitialState() {
         return {
             stateType: stateTypes.LoggedOut,
             stateObj: { isValid: true },
-            sessionObj: {userName:"",userId:"",sessionKey:""}
+            sessionObj: { userName: "", userId: "", sessionKey: "" },
+            navKey: 1
         }
     },
 
@@ -120,9 +141,20 @@ const App = React.createClass({
     handleRegistrationSubmit() {
 
     },
-    
+    handleNavSelect(selectedKey) {
+        if (selectedKey == 1) {
+            this.setState({ stateType: stateTypes.LoggedIn, navKey: selectedKey });
+        } else if (selectedKey == 5) {
+            this.setState({ stateType: stateTypes.Transaction, stateObj: { isValid: true }, navKey: selectedKey });
+        } else if (selectedKey == 6.1) {
+            this.setState({ stateType: stateTypes.LoggedOut, stateObj: { isValid: true }, navKey: 1 });
+        }
+    },
     handleLogoutCick() {
         this.setState({ stateType: stateTypes.LoggedOut, stateObj: { isValid: true } });
+    },
+    handleTransactCick() {
+        this.setState({ stateType: stateTypes.Transaction, stateObj: { isValid: true } });
     },
     sendMessage(messageText) {
         axios
@@ -138,7 +170,7 @@ const App = React.createClass({
             return (
                 <div>
                     <div>
-                        <NavBars isLoggedOut="false" onLogoutClick={this.handleLogoutCick} userName={this.state.sessionObj.userName}/>
+                        <NavBars isLoggedOut="false" onNavSelected={this.handleNavSelect} userName={this.state.sessionObj.userName} activeKey={this.state.navKey}/>
                     </div>
                     <div className="main">
                         <div className="mainBar">
@@ -150,7 +182,10 @@ const App = React.createClass({
                 </div>
             );
         } else if (this.state.stateType === stateTypes.LoggedOut) {
-            return <UserTabsInstance onLoginSubmit={this.handleLoginSubmit} onRegistrationSubmit={this.handleRegistrationSubmit} stateObj={this.state.stateObj} />
+            return <UserTabsInstance onLoginSubmit={this.handleLoginSubmit} onRegistrationSubmit={this.handleRegistrationSubmit}
+                stateObj={this.state.stateObj} activeKey={this.state.navKey} />
+        } else if (this.state.stateType === stateTypes.Transaction) {
+            return <TransactHomeWrapper onNavSelected={this.handleNavSelect} activeKey={this.state.navKey} userName={this.state.sessionObj.userName}/>
         }
     }
 });

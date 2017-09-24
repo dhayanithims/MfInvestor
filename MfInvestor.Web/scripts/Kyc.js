@@ -35,7 +35,7 @@ export const KycFormInstance = React.createClass({
             <div className="rightBar">
                 <Form horizontal>
                     <Col smOffset={1}><p>Please fill following details to submit your KYC</p></Col>
-                    <FormGroup controlId="formPAN">
+                    <FormGroup bsSize="xsmall" controlId="formPAN">
                         <Col smOffset={1} sm={2}>
                         <ControlLabel>PAN</ControlLabel>
                             </Col>
@@ -51,7 +51,6 @@ export const KycFormInstance = React.createClass({
                             <FormControl type="text" placeholder="" value="" onChange={this.handleAdharChange} />
                         </Col>
                     </FormGroup>
-                    
                     <FormGroup controlId="formBank" >
                         <Col smOffset={1} sm={2}>
                         <ControlLabel>Bank Details</ControlLabel>
@@ -66,8 +65,9 @@ export const KycFormInstance = React.createClass({
                         </Col>
                         <Col sm={5}>
                             <FormControl type="file" placeholder="" onChange="" />
+                            <HelpBlock>Upload an image of your signature</HelpBlock>
                         </Col>
-                        <HelpBlock>Upload an image of your signature</HelpBlock>
+                        
                     </FormGroup>
                     <FormGroup>
                         <Col smOffset={1} sm={2}>
