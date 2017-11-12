@@ -1,0 +1,53 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>FirstWebsService</name>
+    </assembly>
+    <members>
+        <member name="M:FirstWebsService.Controllers.TokenController.GET(System.String,System.String)">
+            <summary>
+            Authenticates the user and sends the response
+            </summary>
+            <param name="userName"></param>
+            <param name="password"></param>
+            <returns></returns>
+        </member>
+        <member name="M:FirstWebsService.Controllers.UserController.Post(WebService.Contracts.UserRegistration)">
+            <summary>        
+            Validates the captcha with Google API
+            Registers the user and send the response
+            </summary>
+            <param name="user"></param>
+        </member>
+        <member name="M:FirstWebsService.Controllers.UserController.GetAll">
+            <summary>
+            Sample Method for Authorize Bearer Token and return list of all users
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:FirstWebsService.Controllers.UserController.Authenticate(System.String,System.String)">
+            <summary>
+            Authenticats the userName and Password
+            No token generated in this API Call
+            </summary>
+            <param name="userName"></param>
+            <param name="password"></param>
+            <returns></returns>
+        </member>
+        <member name="M:FirstWebsService.Controllers.UserController.CheckUser(System.String,System.String)">
+            <summary>
+            Checks whether user exists or Not
+            returns True or False
+            </summary>
+            <param name="userName"></param>
+            <param name="mobileNumber"></param>
+            <returns></returns>
+        </member>
+        <member name="M:FirstWebsService.Controllers.ValuesController.Get">
+            <summary>
+            Test Method returns sample data
+            </summary>
+            <returns></returns>       
+        </member>
+    </members>
+</doc>
